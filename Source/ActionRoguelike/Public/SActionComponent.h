@@ -4,19 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "SInteractionComponent.generated.h"
+#include "SActionComponent.generated.h"
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ACTIONROGUELIKE_API USInteractionComponent : public UActorComponent
+class ACTIONROGUELIKE_API USActionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:
-	//call the interaction between the character and objects
-	void PrimaryInteract();
-
+public:	
 	// Sets default values for this component's properties
-	USInteractionComponent();
+	USActionComponent();
 
 protected:
 	// Called when the game starts

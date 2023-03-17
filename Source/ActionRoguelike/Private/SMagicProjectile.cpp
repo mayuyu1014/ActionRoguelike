@@ -4,6 +4,7 @@
 #include "SMagicProjectile.h"
 #include <Components/SphereComponent.h>
 #include "SAttributeComponent.h"
+#include "SGameplayFunctionLibrary.h"
 
 // Sets default values
 ASMagicProjectile::ASMagicProjectile()
@@ -49,26 +50,36 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 	//procedure: check if the actor is hit (check nullptr), if it is hit, get to the attribute component and call health change function
 	if (OtherActor && OtherActor != GetInstigator()) //dont wanna hurt ourself
 	{
+		//HitResult = SweepResult as projectile move by sweeping
+		if(USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageAmount, SweepResult))
+		{
+			Explode();
+		}
+
+		//old method below
+		/*
 		//GetComponentByClass will iterate through all class components in OtherActor
+		USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(OtherActor);
+
+		//old method below
 		//this function returns UActorComponent, so we need to cast it to USAttributeComponent
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+		//USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
 
 		//again, check AttributeComp, because it could be nullptr, like if we hit a wall
 		if (AttributeComp)
 		{
 			//if it is not nullptr, that means we hit some somebody, and we deal some damage to its health
-			AttributeComp->ApplyHealthChange(-DamageAmount);
+			//use GetInstigator() here for whoever is responsible for shooting that projectile
+			AttributeComp->ApplyHealthChange(GetInstigator() ,-DamageAmount);
 
 			// Only explode when we hit something valid
 			Explode();
 
 			//update below to the avoveExplode method
-			/*
 			//after dealing damage, projectile should be removed
-			Destroy();
-			*/
+			//Destroy();
 		}
-
+	*/
 	}
 }
 

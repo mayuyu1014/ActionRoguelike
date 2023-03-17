@@ -53,6 +53,12 @@ void ASCharacter::PostInitializeComponents()
 	AttributeComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
 }
 
+//set the view point to the camera instead of character eyes
+FVector ASCharacter::GetPawnViewLocation() const
+{
+	return CameraComp->GetComponentLocation();
+}
+
 // Called to bind functionality to input
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -102,6 +108,11 @@ void ASCharacter::Tick(float DeltaTime)
 	
 }
 */
+
+void ASCharacter::HealSelf(float Amount /* = 100.0f*/)
+{
+	AttributeComp->ApplyHealthChange(this, Amount);
+}
 
 void ASCharacter::MoveForward(float value)
 {
@@ -259,6 +270,7 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 {
 	if (Delta < 0.0f)
 	{
+		//HitFlash component
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 	}
 

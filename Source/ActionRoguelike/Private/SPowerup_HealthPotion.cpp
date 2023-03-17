@@ -20,13 +20,16 @@ void ASPowerup_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 		return;
 	}
 
-	USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(InstigatorPawn->GetComponentByClass(USAttributeComponent::StaticClass()));
+	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(InstigatorPawn);
+	//old cast method below
+	//USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(InstigatorPawn->GetComponentByClass(USAttributeComponent::StaticClass()));
+
 	// Check if not already at max health, not necessary, can be removed
 	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
 	{
 		// Only activate if healed successfully, and heal the character to full health
 		//change this parameter to play around the amount of healing it can be done
-		if (AttributeComp->ApplyHealthChange(AttributeComp->GetHealthMax()))
+		if (AttributeComp->ApplyHealthChange(this, AttributeComp->GetHealthMax()))
 		{
 			HideAndCooldownPowerup();
 		}

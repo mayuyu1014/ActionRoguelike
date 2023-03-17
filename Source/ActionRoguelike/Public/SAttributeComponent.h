@@ -15,7 +15,16 @@ class ACTIONROGUELIKE_API USAttributeComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
+
+	//a static getter to make things easier to get something from this attribute class
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	static USAttributeComponent* GetAttributes(AActor* FromActor);
+
+	//another static for easy access to check if AActor IsAlive()
+	UFUNCTION(BlueprintCallable, Category = "Attributes", meta = (DisplayName = "IsAlive"))
+	static bool IsActorAlive(AActor* Actor);
+
 	// Sets default values for this component's properties
 	USAttributeComponent();
 
@@ -42,20 +51,27 @@ protected:
 
 public:
 
+	//might be useful in some cases
+	UFUNCTION(BlueprintCallable)
+	bool Kill(AActor* InstigatorActor);
+
 	//return the living state of a character
 	UFUNCTION(BlueprintCallable)
-		bool IsAlive() const;
+	bool IsAlive() const;
 
 	UFUNCTION(BlueprintCallable)
-		bool IsFullHealth() const;
+	bool IsFullHealth() const;
 
 	UFUNCTION(BlueprintCallable)
-		float GetHealthMax() const;
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthMax() const;
 
 	//assignable allows us to bind and subscribe to this event
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	bool ApplyHealthChange(float Delta);
+	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
 };

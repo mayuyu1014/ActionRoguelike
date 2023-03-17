@@ -6,6 +6,9 @@
 #include "SGameplayInterface.h"
 #include "DrawDebugHelpers.h"
 
+//a console variable to control the on/off of debug drawing tool
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Line for Interact Component."), ECVF_Cheat);
+
 // Sets default values for this component's properties
 USInteractionComponent::USInteractionComponent()
 {
@@ -37,6 +40,9 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void USInteractionComponent::PrimaryInteract()
 {
+	//debug drawing tool switch
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+
 	//the object type we detect is ECC_WorldDynamic
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
@@ -78,6 +84,14 @@ void USInteractionComponent::PrimaryInteract()
 	//get actor here to check its interface or other whatever properties
 	//ranged for loop for Hits collection
 	for (auto Hit : Hits) {
+
+		//draw debug line if switch is on
+		if (bDebugDraw)
+		{
+			//debug sphere to expose the size of sphere we use to sweep, segments is the amount details we draw
+			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, radius, 32, LineColor, false, 2.0f);
+		}
+
 		AActor* HitActor = Hit.GetActor(); //without the loop this would be single-line tracing
 
 		if (HitActor) //safety check pointer
@@ -94,11 +108,11 @@ void USInteractionComponent::PrimaryInteract()
 				break; //find one hit and we are done, no need to sweep for more
 			}
 		}
-		//debug sphere to expose the size of sphere we use to sweep, segments is the amount details we draw
-		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, radius, 32, LineColor, false, 2.0f);
 	}
-
+	if (bDebugDraw)
+	{
 		//draw debug lines to expose the eyesight length and direction
 		DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 2.0f);
+	}
 }
 

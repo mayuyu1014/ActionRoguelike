@@ -101,6 +101,9 @@ protected:
 	//binding events
 	virtual void PostInitializeComponents() override;
 
+	//override the original view point function which only suits for FPS
+	virtual FVector GetPawnViewLocation() const override;
+
 public:
 
 	// Sets default values for this character's properties
@@ -111,4 +114,8 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	//cheating codes for debug, can only be added in player character, player controller, game mode, and cheat manager
+	UFUNCTION(Exec)
+	void HealSelf(float Amount = 100.0f);
 };

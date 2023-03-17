@@ -13,10 +13,13 @@ void ASAIController::BeginPlay()
 
 	if (ensureMsgf(BehaviorTree, TEXT("Behavior Tree is nullptr! Please assign BehaviorTree in your AI Controller.")))
 	{
-		RunBehaviorTree(BehaviorTree);
+		//alternative to ensure, we have UE version of assert
+		if (ensureMsgf(BehaviorTree, TEXT("Behavior Tree is nullptr. Please assign BehaviorTree in your AI Controller"))) {
+			RunBehaviorTree(BehaviorTree);
+		}
 	}
-
-	 //old method
+	/*
+	 //old method, now we only want actor be seen as target actor
 	//GetPlayerPawn needs us to pass any player that lives in the world, with its player index, which is our character here
 	APawn* MyPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 
@@ -29,4 +32,5 @@ void ASAIController::BeginPlay()
 		//assign the location to where the TargetActor is
 		GetBlackboardComponent()->SetValueAsObject("TargetActor", MyPawn);
 	}
+	*/
 }

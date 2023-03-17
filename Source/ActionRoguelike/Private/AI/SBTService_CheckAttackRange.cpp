@@ -6,6 +6,10 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
+USBTService_CheckAttackRange::USBTService_CheckAttackRange()
+{
+	MaxAttackRange = 2000.f;
+}
 
 //need to add "AIModule", "GameplayTasks" in .build.cs module to make it work
 void USBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -23,31 +27,28 @@ void USBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, u
 		if(TargetActor)
 		{
 			AAIController* MyController = OwnerComp.GetAIOwner();
-			if(ensure(MyController))
+			//finally get AI Pawn
+			APawn* AIPawn = MyController->GetPawn();
+
+			if(ensure(AIPawn))
 			{
-				//finally get AI Pawn
-				APawn* AIPawn = MyController->GetPawn();
-				if(ensure(AIPawn))
+				//use built-in distance function from FVector 
+				float DistanceTo = FVector::Distance(TargetActor->GetActorLocation(), AIPawn->GetActorLocation());
+				//hard code here
+				bool bWithinRange = DistanceTo < MaxAttackRange;
+
+				//use built-in line trace function to give AI some basic "sight"
+				bool bHasLOS = false;
+				//only check when Target Actor is in Range
+				if(bWithinRange)
 				{
-					//use built-in distance function from FVector 
-					float DistanceTo = FVector::Distance(TargetActor->GetActorLocation(), AIPawn->GetActorLocation());
-					//hard code here
-					bool bWithinRange = DistanceTo < 2000.0f;
-
-					//use built-in line trace function to give AI some basic "sight"
-					bool bHasLOS = false;
-					//only check when Target Actor is in Range
-					if(bWithinRange)
-					{
-						//return true if in sight
-						bHasLOS = MyController->LineOfSightTo(TargetActor);
-					}
-					//put it in BlackBoard, and call .SelectedKeyName to get FName type
-					BlackBoardComp->SetValueAsBool(AttackRangeKey.SelectedKeyName, bWithinRange && bHasLOS);
-
+					//return true if in sight
+					bHasLOS = MyController->LineOfSightTo(TargetActor);
 				}
+				//put it in BlackBoard, and call .SelectedKeyName to get FName type
+				BlackBoardComp->SetValueAsBool(AttackRangeKey.SelectedKeyName, bWithinRange && bHasLOS);
 			}
 		}
 	}
-
 }
+

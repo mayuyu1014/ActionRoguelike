@@ -28,8 +28,14 @@ bool USGameplayFunctionLibrary::ApplyDirectionalDamage(AActor* DamageCauser, AAc
 
 		if (HitComp && HitComp->IsSimulatingPhysics(HitResult.BoneName))
 		{
+			//To get the proper shooting direction, we need a trace as a vector
+			//Direction = Target - Origin
+			FVector Direction = HitResult.TraceEnd - HitResult.TraceStart;
+			//need to normalize() it to make it a proper directional vector
+			Direction.Normalize();
+
 			//ImpactNormal is the direction from the attacker, so need to invert it
-			HitComp->AddImpulseAtLocation(-HitResult.ImpactNormal * 300000.f, HitResult.ImpactPoint, HitResult.BoneName);
+			HitComp->AddImpulseAtLocation(Direction * 150000.f, HitResult.ImpactPoint, HitResult.BoneName);
 		}
 		return true;
 	}

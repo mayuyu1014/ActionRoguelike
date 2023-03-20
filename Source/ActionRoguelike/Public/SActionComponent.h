@@ -4,25 +4,49 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTagContainer.h"
 #include "SActionComponent.generated.h"
 
+class USAction;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONROGUELIKE_API USActionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
-	// Sets default values for this component's properties
+public:
+	//remember to add "GameplayTag" in build.cs
+	//we can change it from anywhere
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
+	FGameplayTagContainer ActiveGameplayTags;
+
+	//public so this can be called from outside
+	UFUNCTION(BlueprintCallable, Category = "Actions")
+	void AddAction(TSubclassOf<USAction> ActionClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Actions")
+	bool StartActionByName(AActor* Instigator, FName ActionName);
+
+	UFUNCTION(BlueprintCallable, Category = "Actions")
+	bool StopActionByName(AActor* Instigator, FName ActionName);
+
 	USActionComponent();
 
 protected:
+
+	//this array is to grant abilities at start play in character BP
+	//TSubClassOf because they are BP/child classes of USAction
+	UPROPERTY(EditAnywhere, Category = "Actions")
+	TArray<TSubclassOf<USAction>> DefaultActions;
+
+	//create an array to store abilities
+	UPROPERTY()
+	TArray<USAction*> Actions;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		
 };

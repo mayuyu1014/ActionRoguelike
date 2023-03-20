@@ -11,6 +11,11 @@ ASPowerupActor::ASPowerupActor()
 	SphereComp->SetCollisionProfileName("Powerup");
 	RootComponent = SphereComp;
 
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>("MeshComp");
+	// Disable collision, instead we use SphereComp to handle interaction queries
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MeshComp->SetupAttachment(RootComponent);
+
 	RespawnTime = 10.0f;
 }
 
@@ -27,8 +32,8 @@ void ASPowerupActor::ShowPowerup()
 void ASPowerupActor::HideAndCooldownPowerup()
 {
 	SetPowerupState(false);
+
 	//timer to set power up state in CD = counting down timer before we call ShowPowerUp
-	FTimerHandle TimerHandle_RespawnTimer;
 	GetWorldTimerManager().SetTimer(TimerHandle_RespawnTimer, this, &ASPowerupActor::ShowPowerup, RespawnTime);
 }
 

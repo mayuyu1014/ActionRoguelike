@@ -12,6 +12,7 @@ class USInteractionComponent;
 class UAnimMontage;
 class USAttributeComponent;
 class UParticleSystem;
+class USActionComponent;
 
 UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
@@ -23,37 +24,7 @@ protected:
 	/* VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention. */
 	//the trick here is to make it only for others to see it, but unable to change to avoid potential "bugs"
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
-		FName TimeToHitParamName;
-
-	UPROPERTY(VisibleAnywhere, Category = "Effects")
-		FName HandSocketName;
-
-	//assign our projectile class here, needs to be added in blueprint
-	//using category to be more orgainized, and easy to find in blueprint
-	UPROPERTY(EditAnywhere, Category = "Attack")
-		TSubclassOf<AActor> ProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-		TSubclassOf<AActor> BlackHoleProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-		TSubclassOf<AActor> DashProjectileClass;
-
-	//declare a pointer pointing to this existing attack animation
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* AttackAnim;
-
-	/* Particle System played during attack animation */
-	UPROPERTY(EditAnywhere, Category = "Attack")
-		UParticleSystem* CastingEffect;
-
-	//declare to create the Timer Handler
-	FTimerHandle TimerHandle_PrimaryAttack;
-	FTimerHandle TimerHandle_BlackholeAttack;
-	FTimerHandle TimerHandle_Dash;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-		float AttackAnimDelay;
+	FName TimeToHitParamName;
 
 	//third person camera setup
 	UPROPERTY(VisibleAnywhere)
@@ -69,28 +40,25 @@ protected:
 
 	//bind attribute component to the character
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		USAttributeComponent* AttributeComp;
+	USAttributeComponent* AttributeComp;
+
+	//bind to our own action system
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USActionComponent* ActionComp;
 
 	//movement function
 	void MoveForward(float value);
 	void MoveRight(float value);
 
+	void SprintStart();
+	void SprintStop();
+
 	//attack function - its an action so no need for parameter
 	void PrimaryAttack();
-	//Timer elapsed for primary attack
-	void PrimaryAttack_Elapsed();
 
 	void BlackHoleAttack();
-	void BlackholeAttack_TimeElapsed();
 
 	void Dash();
-	void Dash_TimeElapsed();
-
-	//casting effects
-	void StartAttackEffects();
-
-	// Re-use spawn logic between attacks
-	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
 
 	//Interact function
 	void PrimaryInteract();

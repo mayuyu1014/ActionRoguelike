@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SProjectileBase.h"
+#include "GameplayTagContainer.h"
 #include "SMagicProjectile.generated.h"
 
 UCLASS()
@@ -18,7 +19,11 @@ public:
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-		float DamageAmount;
+	float DamageAmount;
+
+	//parry
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	FGameplayTag ParryTag;
 
 	//this function is used to change health/deal damage, remember UFUNCTION() so we can trigger the event
 	//parameters copied from second overload of OnComponentBeginOverlap functions

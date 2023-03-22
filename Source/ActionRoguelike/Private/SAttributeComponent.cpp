@@ -19,6 +19,7 @@ USAttributeComponent::USAttributeComponent()
 	Rage = 0;
 	RageMax = 100;
 
+	//to setup replicated variables in the constructor, we need to call this:
 	SetIsReplicatedByDefault(true);
 }
 
@@ -76,6 +77,7 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor,float Delta
 
 	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta); // @fixme: fixed!
 
+	//small optimalization, dont send when damage dealt is 0
 	if (ActualDelta != 0.0f)
 	{
 		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
@@ -144,14 +146,19 @@ bool USAttributeComponent::IsActorAlive(AActor* Actor)
 
 void USAttributeComponent::MulticastHealthChanged_Implementation(AActor* InstigatorActor, float NewHealth, float Delta)
 {
+	//call the event
 	OnHealthChanged.Broadcast(InstigatorActor, this, NewHealth, Delta);
 }
 
+//whenever we have replicated variable, we need to call this, and no declaration needed:
 void USAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	//Param1: class, Param2: value
 	DOREPLIFETIME(USAttributeComponent, Health);
 	DOREPLIFETIME(USAttributeComponent, HealthMax);
+
+	//optimization for bandwidth, when HealthMax changes in game, only the owner can see the change
 	//DOREPLIFETIME_CONDITION(USAttributeComponent, HealthMax, COND_InitialOnly);
 }

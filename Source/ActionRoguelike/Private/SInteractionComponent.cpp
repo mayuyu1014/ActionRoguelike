@@ -34,8 +34,13 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//check it every tick
-	FindBestInteractable();
+	//in multiplayer, find the player who actually needs to run the code
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+	if(MyPawn->IsLocallyControlled())
+	{
+		//check it every tick
+		FindBestInteractable();
+	}
 }
 
 void USInteractionComponent::FindBestInteractable()
@@ -89,7 +94,7 @@ void USInteractionComponent::FindBestInteractable()
 		if (bDebugDraw)
 		{
 			//debug sphere to expose the size of sphere we use to sweep, segments is the amount details we draw
-			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, TraceRadius, 32, LineColor, false, 2.0f);
+			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, TraceRadius, 32, LineColor, false, 0.0f);
 		}
 
 		AActor* HitActor = Hit.GetActor(); //without the loop this would be single-line tracing
@@ -136,14 +141,19 @@ void USInteractionComponent::FindBestInteractable()
 	if (bDebugDraw)
 	{
 		//draw debug lines to expose the eyesight length and direction
-		DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 2.0f);
+		DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 0.0f);
 	}
 }
 
 void USInteractionComponent::PrimaryInteract()
 {
+	ServerInteract(FocusedActor);
+}
+
+void USInteractionComponent::ServerInteract_Implementation(AActor* InFocus)
+{
 	//check FocusedActor or program crash
-	if (FocusedActor == nullptr)
+	if (InFocus == nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "No Focused Actor to Interact");
 		return;
@@ -153,6 +163,5 @@ void USInteractionComponent::PrimaryInteract()
 	APawn* MyPawn = Cast<APawn>(GetOwner());
 	//special syntax here to call interact function from the interface, and MyPawn can be null
 	//when we need to actually implement things we use I
-	ISGameplayInterface::Execute_Interact(FocusedActor, MyPawn);
+	ISGameplayInterface::Execute_Interact(InFocus, MyPawn);
 }
-

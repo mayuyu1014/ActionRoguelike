@@ -22,6 +22,11 @@ public:
 
 protected:
 
+	//Reliable - will always arrive, eventually. Request will be resent unless an acknowledgement was received
+	//Unreliable - not guaranteed, packet can get lost and wont retry
+	UFUNCTION(Server, Reliable)
+	void ServerInteract(AActor* InFocus);
+
 	//display something so the player knows the item is interactable
 	void FindBestInteractable();
 

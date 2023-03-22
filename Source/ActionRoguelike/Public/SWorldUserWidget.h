@@ -31,7 +31,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	FVector WorldOffset;
 
+
 	//broaddast this to UPROPERTY system for safe handling of the pointers
-	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	//the meta part make this an input pin whenever we created a widget
+	UPROPERTY(BlueprintReadWrite, Category = "UI", meta = (ExposeOnSpawn=true))
 	AActor* AttachedActor;
 };

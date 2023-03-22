@@ -41,6 +41,7 @@ public:
 
 protected:
 
+	//add a server RPC
 	UFUNCTION(Server, Reliable)
 	void ServerStartAction(AActor* Instigator, FName ActionName);
 

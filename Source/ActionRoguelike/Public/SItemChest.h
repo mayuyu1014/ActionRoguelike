@@ -21,12 +21,19 @@ public:
 	//after inherit the gameplay interface, need to implement it here
 	//_Implementation is needed here because we specified it as a BlueprintNativeEvent
 	void Interact_Implementation(APawn* InstigatorPawn);
-	
-public:	
+
 	// Sets default values for this actor's properties
 	ASItemChest();
 
 protected:
+
+	//synchronzing the state of the chest
+	UPROPERTY(ReplicatedUsing="OnRep_LidOpened", BlueprintReadOnly) //rep notify, it allows this var bind to a function, OnRep_LidOpened
+	bool bLidOpened;
+
+	UFUNCTION()
+	void OnRep_LidOpened();
+
 	//create two functions for this chest, a base + a lid
 	UPROPERTY(VisibleAnywhere)
 		UStaticMeshComponent* BaseMesh;

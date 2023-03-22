@@ -62,6 +62,8 @@ protected:
 	//UPROPERTY()
 	//bool bIsAlive;
 
+	//RPC, reliable here because we disable input on this event when we are dead
+	//reliable is bad for multicast, because it ignores relevancy
 	UFUNCTION(NetMulticast, Reliable) // @FIXME: mark as unreliable once we moved the 'state' our of scharacter
 	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
 

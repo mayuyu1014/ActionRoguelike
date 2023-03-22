@@ -17,6 +17,9 @@ ASPowerupActor::ASPowerupActor()
 	MeshComp->SetupAttachment(RootComponent);
 
 	RespawnTime = 10.0f;
+
+	//tell the server to spawn all the replicated actors
+	SetReplicates(true);
 }
 
 void ASPowerupActor::Interact_Implementation(APawn* InstigatorPawn)

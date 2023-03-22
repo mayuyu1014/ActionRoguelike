@@ -3,6 +3,7 @@
 
 #include "SAction.h"
 #include "SActionComponent.h"
+#include "ActionRoguelike/ActionRoguelike.h"
 
 bool USAction::CanStart_Implementation(AActor* Instigator)
 {
@@ -25,7 +26,8 @@ bool USAction::CanStart_Implementation(AActor* Instigator)
 void USAction::StartAction_Implementation(AActor* Instigator)
 {
 	//debugging message
-	UE_LOG(LogTemp, Log, TEXT("Running %s"), *GetNameSafe(this));
+	//UE_LOG(LogTemp, Log, TEXT("Running %s"), *GetNameSafe(this));
+	LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *ActionName.ToString()), FColor::Green);
 
 	USActionComponent* Comp = GetOwningComponent();
 
@@ -38,7 +40,8 @@ void USAction::StartAction_Implementation(AActor* Instigator)
 void USAction::StopAction_Implementation(AActor* Instigator)
 {
 	//debugging message
-	UE_LOG(LogTemp, Log, TEXT("Stopped %s"), *GetNameSafe(this));
+	//UE_LOG(LogTemp, Log, TEXT("Stopped %s"), *GetNameSafe(this));
+	LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *ActionName.ToString()), FColor::Red);
 
 	//always check if the boolean is set
 	ensureAlways(IsRunning());

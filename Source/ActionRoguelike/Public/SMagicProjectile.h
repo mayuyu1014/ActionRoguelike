@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "SMagicProjectile.generated.h"
 
+class USActionEffect;
+
 UCLASS()
 class ACTIONROGUELIKE_API ASMagicProjectile : public ASProjectileBase
 {
@@ -21,9 +23,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float DamageAmount;
 
-	//parry
+	//parry attacks
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	FGameplayTag ParryTag;
+
+	//this is only for the buff/debuffs or effects
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	TSubclassOf<USActionEffect> BurningActionClass;
 
 	//this function is used to change health/deal damage, remember UFUNCTION() so we can trigger the event
 	//parameters copied from second overload of OnComponentBeginOverlap functions

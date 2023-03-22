@@ -10,6 +10,10 @@
 //thought process: give a delegate name -> current/new health -> how much changed (delta) -> where it changed -> who did it?
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnHealthChanged, AActor*, InstigatorActor, USAttributeComponent*, OwningComp, float, NewHealth, float, Delta);
 
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnRageChanged, AActor*, InstigatorActor, USAttributeComponent*, OwningComp, float, NewRage, float, Delta);
+// Alternative: Share the same signature with generic names
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnAttributeChanged, AActor*, InstigatorActor, USAttributeComponent*, OwningComp, float, NewValue, float, Delta);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONROGUELIKE_API USAttributeComponent : public UActorComponent
 {
@@ -41,13 +45,25 @@ protected:
 	//Category = "" - display only for detail panels and blueprint context menu
 
 	//setup health variable
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
+	float Health;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
+	float HealthMax;
+
+	/* Resource used to power certain Actions */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-		float Health;
+	float Rage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-		float HealthMax;
+	float RageMax;
 
-	//HealthMax, Stamina, Strength
+	//UPROPERTY()
+	//bool bIsAlive;
+
+	UFUNCTION(NetMulticast, Reliable) // @FIXME: mark as unreliable once we moved the 'state' our of scharacter
+	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
 
 public:
 
@@ -55,8 +71,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool Kill(AActor* InstigatorActor);
 
-	//return the living state of a character
 	UFUNCTION(BlueprintCallable)
+	//return the living state of a character
 	bool IsAlive() const;
 
 	UFUNCTION(BlueprintCallable)
@@ -72,6 +88,15 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "Attributes")
+	FOnAttributeChanged OnRageChanged;
+
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
+
+	UFUNCTION(BlueprintCallable)
+	float GetRage() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	bool ApplyRage(AActor* InstigatorActor, float Delta);
 };

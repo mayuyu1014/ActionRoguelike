@@ -4,6 +4,7 @@
 #include "SAttributeComponent.h"
 
 #include "SGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 
 //global damage multiplier in gm mode
 static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("su.DamageMultiplier"), 1.0f, TEXT("Global Damage Modifier for Attribute Component."), ECVF_Cheat);
@@ -14,6 +15,11 @@ USAttributeComponent::USAttributeComponent()
 	//setup default health
 	HealthMax = 100;
 	Health = HealthMax;
+
+	Rage = 0;
+	RageMax = 100;
+
+	SetIsReplicatedByDefault(true);
 }
 
 bool USAttributeComponent::Kill(AActor* InstigatorActor)
@@ -53,7 +59,7 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor,float Delta
 	}
 
 	//a very general way of multiplying damage, need better and specific versions of this
-	if (Delta < 0)
+	if (Delta < 0.0f)
 	{
 		float DamageMultipler = CVarDamageMultiplier.GetValueOnGameThread();
 		Delta *= DamageMultipler;
@@ -67,7 +73,13 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor,float Delta
 
 	//ActualDelta is the actual change of health of the character, and after character dies the delta would be 0
 	float ActualDelta = Health - OldHealth;
-	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta); // @fixme: fixed!
+
+	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta); // @fixme: fixed!
+
+	if (ActualDelta != 0.0f)
+	{
+		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+	}
 
 	//died
 	if (ActualDelta < 0.0f && Health == 0.0f)
@@ -79,6 +91,26 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor,float Delta
 			//since its dead, whoever owns this attribute is killed by the Instigator
 			GM->OnActorKilled(GetOwner(), InstigatorActor);
 		}
+	}
+
+	return ActualDelta != 0;
+}
+
+float USAttributeComponent::GetRage() const
+{
+	return Rage;
+}
+
+bool USAttributeComponent::ApplyRage(AActor* InstigatorActor, float Delta)
+{
+	float OldRage = Rage;
+
+	Rage = FMath::Clamp(Rage + Delta, 0.0f, RageMax);
+
+	float ActualDelta = Rage - OldRage;
+	if (ActualDelta != 0.0f)
+	{
+		OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
 	}
 
 	return ActualDelta != 0;
@@ -110,3 +142,16 @@ bool USAttributeComponent::IsActorAlive(AActor* Actor)
 	return false;
 }
 
+void USAttributeComponent::MulticastHealthChanged_Implementation(AActor* InstigatorActor, float NewHealth, float Delta)
+{
+	OnHealthChanged.Broadcast(InstigatorActor, this, NewHealth, Delta);
+}
+
+void USAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USAttributeComponent, Health);
+	DOREPLIFETIME(USAttributeComponent, HealthMax);
+	//DOREPLIFETIME_CONDITION(USAttributeComponent, HealthMax, COND_InitialOnly);
+}

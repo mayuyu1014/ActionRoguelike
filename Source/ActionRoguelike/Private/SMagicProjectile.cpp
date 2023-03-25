@@ -77,8 +77,8 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 		{
 			Explode();
 
-			//apply burning debuff
-			if (ActionComp)
+			//apply burning debuff, and applicable by the server
+			if (ActionComp && HasAuthority())
 			{
 				ActionComp->AddAction(GetInstigator(), BurningActionClass);
 			}

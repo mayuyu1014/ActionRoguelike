@@ -30,15 +30,19 @@ void USAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 		//casting effects
 		UGameplayStatics::SpawnEmitterAttached(CastingEffect, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
 
-		//use a timer to delay the spawning of projectile to synchronize it with attack animation
-		//A handler timer is a struct to hold the handle of this timer, pass as first parameter when set timer
-		//PrimaryAttack_Elapsed as a functor, which actually implements the spawning of the projectile, after 0.2s
-		FTimerHandle TimerHandle_AttackDelay;
-		FTimerDelegate Delegate;
-		Delegate.BindUFunction(this, "AttackDelay_Elapsed", Character);
+		//server only for this timer codes
+		if (Character->HasAuthority())
+		{
+			//use a timer to delay the spawning of projectile to synchronize it with attack animation
+			//A handler timer is a struct to hold the handle of this timer, pass as first parameter when set timer
+			//PrimaryAttack_Elapsed as a functor, which actually implements the spawning of the projectile, after 0.2s
+			FTimerHandle TimerHandle_AttackDelay;
+			FTimerDelegate Delegate;
+			Delegate.BindUFunction(this, "AttackDelay_Elapsed", Character);
 
-		//we dont have WorldTimerManager since its a function in AActor, thus we call it seperately here
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, Delegate, AttackAnimDelay, false);
+			//we dont have WorldTimerManager since its a function in AActor, thus we call it seperately here
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, Delegate, AttackAnimDelay, false);
+		}
 	}
 }
 

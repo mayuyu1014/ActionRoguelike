@@ -68,32 +68,38 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor,float Delta
 
 	//current health stored in OldHealth
 	float OldHealth = Health;
-
-	//health is properly constrained between 0 and 100, so it stays at 0 even if we keep getting damages
-	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
+	//this variable is created for client]
+	float NewHealth = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
 
 	//ActualDelta is the actual change of health of the character, and after character dies the delta would be 0
-	float ActualDelta = Health - OldHealth;
+	float ActualDelta = NewHealth - OldHealth;
 
-	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta); // @fixme: fixed!
-
-	//small optimalization, dont send when damage dealt is 0
-	if (ActualDelta != 0.0f)
+	//player Health is only applicable on server
+	if (GetOwner()->HasAuthority())
 	{
-		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
-	}
+		//health is properly constrained between 0 and 100, so it stays at 0 even if we keep getting damages
+		Health = NewHealth;
 
-	//died
-	if (ActualDelta < 0.0f && Health == 0.0f)
-	{
-		//call GameModeBase class and only authority/server can call it 
-		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
-		if(GM)
+		//small optimalization, dont send when damage dealt is 0
+		if (ActualDelta != 0.0f)
 		{
-			//since its dead, whoever owns this attribute is killed by the Instigator
-			GM->OnActorKilled(GetOwner(), InstigatorActor);
+			MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+		}
+
+		//died, only check this on the server
+		if (ActualDelta < 0.0f && Health == 0.0f)
+		{
+			//call GameModeBase class and only authority/server can call it 
+			ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
+			if (GM)
+			{
+				//since its dead, whoever owns this attribute is killed by the Instigator
+				GM->OnActorKilled(GetOwner(), InstigatorActor);
+			}
 		}
 	}
+
+	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta); // for single player mode only
 
 	return ActualDelta != 0;
 }

@@ -41,9 +41,12 @@ public:
 
 protected:
 
-	//add a server RPC
+	//send a server RPC whenever we need to start/stop an action
 	UFUNCTION(Server, Reliable)
 	void ServerStartAction(AActor* Instigator, FName ActionName);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopAction(AActor* Instigator, FName ActionName);
 
 	//this array is to grant abilities at start play in character BP
 	//TSubClassOf because they are BP/child classes of USAction
@@ -51,13 +54,17 @@ protected:
 	TArray<TSubclassOf<USAction>> DefaultActions;
 
 	//create an array to store abilities
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	TArray<USAction*> Actions;
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
+public:
+
+	//special case: we need to override this function to replicate UObjects
+	bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

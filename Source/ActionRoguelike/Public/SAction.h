@@ -9,6 +9,19 @@
 
 class UWorld;
 
+//build a struct to wrap the instigator who is responsible for the actions
+USTRUCT()
+struct FActionRepData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	bool bIsRunning;
+
+	UPROPERTY()
+	AActor* Instigator;
+};
+
 /**
  * 
  */
@@ -32,8 +45,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer BlockedTags;
 
-	//internal check if the start function is called, so we dont call stop function when the start is not called;
-	bool bIsRunning;
+	//check if the start function is called, so we dont call stop function when the start is not called;
+	UPROPERTY(ReplicatedUsing = "OnRep_RepData")
+	FActionRepData RepData;
+	//bool bIsRunning;
+
+	//only triggers when a packet arrive server and compared with local variable
+	UFUNCTION()
+	void OnRep_RepData();
 
 public:
 
@@ -61,4 +80,10 @@ public:
 
 	//override GetWorld() to have all of its functions available in BP
 	UWorld* GetWorld() const override;
+
+	//UObject doesnt support network by default, so we have to override it here
+	bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };

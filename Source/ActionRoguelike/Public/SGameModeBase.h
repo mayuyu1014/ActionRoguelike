@@ -10,6 +10,7 @@
 class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 class UCurveFloat;
+class USSaveGame;
 
 /**
  * 
@@ -20,6 +21,11 @@ class ACTIONROGUELIKE_API ASGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 protected:
+
+	FString SlotName;
+
+	UPROPERTY()
+	USSaveGame* CurrentSaveGame;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	TSubclassOf<AActor> MinionClass;
@@ -73,9 +79,27 @@ public:
 
 	ASGameModeBase();
 
+	/*
+ * Initialize the game.
+ * The GameMode's InitGame() event is called before any other functions (including PreInitializeComponents() )
+ * and is used by the GameMode to initialize parameters and spawn its helper classes.
+ * @warning: this is called before actors' PreInitializeComponents.
+ */
+	void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+
 	virtual void StartPlay() override;
+
+	/** Signals that a player is ready to enter the game, which may start it up */
+	UFUNCTION(BlueprintNativeEvent, Category = Game)
+	void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
 	//cheating code for debug purpose
 	UFUNCTION(Exec)
 	void KillAll();
+
+	//available in BP make it easy to save game through UI or in game object 
+	UFUNCTION(BlueprintCallable, Category="SaveGame")
+	void WriteSaveGame();
+
+	void LoadSaveGame();
 };

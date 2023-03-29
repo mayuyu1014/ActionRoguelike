@@ -4,6 +4,8 @@
 #include "SPowerupActor.h"
 #include <Components/SphereComponent.h>
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 ASPowerupActor::ASPowerupActor()
 {
@@ -17,6 +19,7 @@ ASPowerupActor::ASPowerupActor()
 	MeshComp->SetupAttachment(RootComponent);
 
 	RespawnTime = 10.0f;
+	bIsActive = true;
 
 	//tell the server to spawn all the replicated actors
 	SetReplicates(true);
@@ -42,9 +45,21 @@ void ASPowerupActor::HideAndCooldownPowerup()
 
 void ASPowerupActor::SetPowerupState(bool bNewIsActive)
 {
-	//no collision when it is false
-	SetActorEnableCollision(bNewIsActive);
+	bIsActive = bNewIsActive;
+	OnRep_IsActive();
+}
 
-	// Set visibility on root and all children, invisible when false
-	RootComponent->SetVisibility(bNewIsActive, true);
+void ASPowerupActor::OnRep_IsActive()
+{
+	SetActorEnableCollision(bIsActive);
+	// Set visibility on root and all children
+	RootComponent->SetVisibility(bIsActive, true);
+}
+
+
+void ASPowerupActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASPowerupActor, bIsActive);
 }

@@ -41,7 +41,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TargetActorKey;
 
-	//for internal use
+	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetTargetActor(AActor* NewTarget);
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
@@ -67,4 +67,7 @@ protected:
 	//delegate function from parent class - UPawnSensingComponent
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPawnSeen();
 };

@@ -24,6 +24,11 @@ class ACTIONROGUELIKE_API ISGameplayInterface
 public:
 	//BlueprintNativeEvent tells the engine to expect a base class in C++ but still implementable in blueprint
 	//BlueprintCallable allows us to call this function in blueprint
+
+	//called after the actor state was restored from a save game file
+	UFUNCTION(BlueprintNativeEvent)
+	void OnActorLoaded();
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	//Interaction function between player (InstigatorPawn) and another object (AActor)
 	void Interact(APawn* InstigatorPawn);

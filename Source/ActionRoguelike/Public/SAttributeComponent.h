@@ -6,11 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "SAttributeComponent.generated.h"
 
-//create custom events about health change
-//thought process: give a delegate name -> current/new health -> how much changed (delta) -> where it changed -> who did it?
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnHealthChanged, AActor*, InstigatorActor, USAttributeComponent*, OwningComp, float, NewHealth, float, Delta);
-
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnHealthChanged, AActor*, InstigatorActor, USAttributeComponent*, OwningComp, float, NewHealth, float, Delta);
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnRageChanged, AActor*, InstigatorActor, USAttributeComponent*, OwningComp, float, NewRage, float, Delta);
+
 // Alternative: Share the same signature with generic names
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnAttributeChanged, AActor*, InstigatorActor, USAttributeComponent*, OwningComp, float, NewValue, float, Delta);
 
@@ -67,28 +65,31 @@ protected:
 	UFUNCTION(NetMulticast, Reliable) // @FIXME: mark as unreliable once we moved the 'state' our of scharacter
 	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
 
+	UFUNCTION(NetMulticast, Unreliable) // Used for cosmetic changes only
+	void MulticastRageChanged(AActor* InstigatorActor, float NewRage, float Delta);
+
 public:
 
 	//might be useful in some cases
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool Kill(AActor* InstigatorActor);
 
-	UFUNCTION(BlueprintCallable)
 	//return the living state of a character
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool IsAlive() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool IsFullHealth() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	float GetHealth() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	float GetHealthMax() const;
 
 	//assignable allows us to bind and subscribe to this event
-	UPROPERTY(BlueprintAssignable)
-	FOnHealthChanged OnHealthChanged;
+	UPROPERTY(BlueprintAssignable, Category = "Attributes")
+	FOnAttributeChanged OnHealthChanged;
 
 	UPROPERTY(BlueprintAssignable, Category = "Attributes")
 	FOnAttributeChanged OnRageChanged;

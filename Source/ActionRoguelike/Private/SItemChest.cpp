@@ -8,13 +8,11 @@
 // Sets default values
 ASItemChest::ASItemChest()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	//instantiate both parts of the chest
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMesh"));
 	//bind base to the root
 	RootComponent = BaseMesh;
+
 	LidMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LidMesh"));
 	//attach lid to the base
 	LidMesh->SetupAttachment(BaseMesh);
@@ -32,6 +30,12 @@ void ASItemChest::Interact_Implementation(APawn* InstigatorPawn)
 	bLidOpened = !bLidOpened;
 
 	//call the rep notify for the server
+	OnRep_LidOpened();
+}
+
+void ASItemChest::OnActorLoaded_Implementation()
+{
+	//update the visual states of ourselves
 	OnRep_LidOpened();
 }
 

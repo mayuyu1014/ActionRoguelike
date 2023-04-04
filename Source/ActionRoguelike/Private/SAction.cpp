@@ -37,6 +37,12 @@ void USAction::StartAction_Implementation(AActor* Instigator)
 
 	RepData.bIsRunning = true;
 	RepData.Instigator = Instigator;
+
+	//use game time to know when the action started and use this to derive how much time remaining
+	TimeStarted = GetWorld()->TimeSeconds;
+
+	//trigger the start of burning/debuff effect, declaration in SActionComponent
+	GetOwningComponent()->OnActionStarted.Broadcast(GetOwningComponent(), this);
 }
 //override in blueprint
 void USAction::StopAction_Implementation(AActor* Instigator)
@@ -54,6 +60,9 @@ void USAction::StopAction_Implementation(AActor* Instigator)
 
 	RepData.bIsRunning = false;
 	RepData.Instigator = Instigator;
+
+	//stop the effect, same as the OnActionStopped
+	GetOwningComponent()->OnActionStopped.Broadcast(GetOwningComponent(), this);
 }
 
 UWorld* USAction::GetWorld() const

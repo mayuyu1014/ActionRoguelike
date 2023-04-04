@@ -33,6 +33,9 @@ class ACTIONROGUELIKE_API USAction : public UObject
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	UTexture2D* Icon;
+
 	//A getter to grab whoever this Action belongs to
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	USActionComponent* GetOwningComponent() const;
@@ -49,6 +52,9 @@ protected:
 	UPROPERTY(ReplicatedUsing = "OnRep_RepData")
 	FActionRepData RepData;
 	//bool bIsRunning;
+
+	//game time when action started
+	float TimeStarted;
 
 	//only triggers when a packet arrive server and compared with local variable
 	UFUNCTION()

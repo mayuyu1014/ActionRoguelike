@@ -38,8 +38,12 @@ void USAction::StartAction_Implementation(AActor* Instigator)
 	RepData.bIsRunning = true;
 	RepData.Instigator = Instigator;
 
-	//use game time to know when the action started and use this to derive how much time remaining
-	TimeStarted = GetWorld()->TimeSeconds;
+	//only the server is allowed to setup this variable
+	if (GetOwningComponent()->GetOwnerRole() == ROLE_Authority)
+	{
+		//use game time to know when the action started and use this to derive how much time remaining
+		TimeStarted = GetWorld()->TimeSeconds;
+	}
 
 	//trigger the start of burning/debuff effect, declaration in SActionComponent
 	GetOwningComponent()->OnActionStarted.Broadcast(GetOwningComponent(), this);
@@ -104,4 +108,5 @@ void USAction::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(USAction, RepData);
+	DOREPLIFETIME(USAction, TimeStarted);
 }

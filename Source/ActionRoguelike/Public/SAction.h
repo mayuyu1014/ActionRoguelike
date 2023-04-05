@@ -53,7 +53,8 @@ protected:
 	FActionRepData RepData;
 	//bool bIsRunning;
 
-	//game time when action started
+	//game time when action started, need to replicate it so the client knows it as well
+	UPROPERTY(Replicated)
 	float TimeStarted;
 
 	//only triggers when a packet arrive server and compared with local variable

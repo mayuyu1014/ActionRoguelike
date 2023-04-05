@@ -29,6 +29,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void OnActorLoaded();
 
+	//display Interaction text, implemented in SPowerupActor
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	FText GetInteractText(APawn* InstigatorPawn);
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	//Interaction function between player (InstigatorPawn) and another object (AActor)
 	void Interact(APawn* InstigatorPawn);

@@ -4,6 +4,7 @@
 #include "SPlayerController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 void ASPlayerController::TogglePauseMenu()
 {
@@ -16,6 +17,12 @@ void ASPlayerController::TogglePauseMenu()
 		//reverse the pause setting
 		bShowMouseCursor = false;
 		SetInputMode(FInputModeGameOnly());
+
+		//Single-player only
+		if (GetWorld()->IsNetMode(NM_Standalone))
+		{
+			UGameplayStatics::SetGamePaused(this, false);
+		}
 		//need to return
 		return;
 	}
@@ -30,6 +37,12 @@ void ASPlayerController::TogglePauseMenu()
 		bShowMouseCursor = true;
 		//dont want the inputs to only affect this UI not the actual gameplay
 		SetInputMode(FInputModeUIOnly());
+
+		//Single-player only
+		if (GetWorld()->IsNetMode(NM_Standalone))
+		{
+			UGameplayStatics::SetGamePaused(this, true);
+		}
 	}
 
 }

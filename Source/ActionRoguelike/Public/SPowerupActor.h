@@ -45,6 +45,8 @@ public:
 
 	void Interact_Implementation(APawn* InstigatorPawn) override;
 
+	FText GetInteractText_Implementation(APawn* InstigatorPawn);
+
 	// Sets default values for this actor's properties
 	ASPowerupActor();
 };

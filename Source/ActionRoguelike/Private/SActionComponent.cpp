@@ -7,6 +7,8 @@
 #include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
+//our own stat
+DECLARE_CYCLE_STAT(TEXT("StartActionByName"), STAT_StartActionByName, STATGROUP_STANFORD);
 
 USActionComponent::USActionComponent()
 {
@@ -32,6 +34,21 @@ void USActionComponent::BeginPlay()
 			AddAction(GetOwner(), ActionClass);
 		}
 	}
+}
+
+void USActionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	//stop all actions after they done, to prevent bugs
+	//need to make copies here, otherwise crash cuz these actions should be removed in other places
+	TArray<USAction*> ActionsCopy = Actions;
+	for (USAction* Action : ActionsCopy)
+	{
+		if (Action && Action->IsRunning())
+		{
+			Action->StopAction(GetOwner());
+		}
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 // Called every frame
@@ -110,6 +127,9 @@ USAction* USActionComponent::GetAction(TSubclassOf<USAction> ActionClass) const
 
 bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 {
+	//implement the stat we created, and it can be moved arount since it lives in curly braces
+	SCOPE_CYCLE_COUNTER(STAT_StartActionByName);
+
 	//search the action by name in the Actions array
 	for (USAction* Action : Actions)
 	{
@@ -128,6 +148,9 @@ bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 			{
 				ServerStartAction(Instigator, ActionName);
 			}
+
+			//Bookmark for Unreal Insights
+			TRACE_BOOKMARK(TEXT("StartAction::%s"), *GetNameSafe(Action));
 
 			Action->StartAction(Instigator);
 			return true;

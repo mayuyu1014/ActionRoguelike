@@ -16,6 +16,9 @@ ASMagicProjectile::ASMagicProjectile()
 	SphereComp->SetSphereRadius(20.0f);
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);
 
+	//inherited variable
+	InitialLifeSpan = 10.0f;
+
 	DamageAmount = 20.0f;
 
 	//below is no longer needed after inheriting from ProjectileBase class instead of AActor

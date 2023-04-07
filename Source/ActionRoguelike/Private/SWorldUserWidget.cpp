@@ -26,9 +26,12 @@ void USWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
 	FVector2D ScreenPosition;
+	//fix of unwanted stuff on the scrren
+	bool bIsOnScreen = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), AttachedActor->GetActorLocation() + WorldOffset, ScreenPosition, false);
+
 	//every tick, project world location to screen location
 	//check if it finds a position on screen
-	if(UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), AttachedActor->GetActorLocation() + WorldOffset, ScreenPosition, false))
+	if(bIsOnScreen)
 	{
 		//UGameplayStatics::ProjectWorldToScreen //old method
 		//we can find this class in BP, it returns the scale of the viewport to our dpi
@@ -42,5 +45,9 @@ void USWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 			//render that box, could be a bar or a text message, on our designed position
 			ParentSizeBox->SetRenderTranslation(ScreenPosition);
 		}
+	}
+	if (ParentSizeBox)
+	{
+		ParentSizeBox->SetVisibility(bIsOnScreen ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }

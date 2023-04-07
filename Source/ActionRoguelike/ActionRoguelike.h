@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 
+DECLARE_STATS_GROUP(TEXT("STANFORD_Game"), STATGROUP_STANFORD, STATCAT_Advanced);
+
 //debug helper
 static void LogOnScreen(UObject* WorldConstext, FString Msg, FColor Color=FColor::White, float Duration=5.0f)
 {

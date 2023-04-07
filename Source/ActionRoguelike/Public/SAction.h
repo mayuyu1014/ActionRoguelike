@@ -33,8 +33,9 @@ class ACTIONROGUELIKE_API USAction : public UObject
 
 protected:
 
+	//an example of soft referencing, need to loading in manually
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	UTexture2D* Icon;
+	TSoftObjectPtr<UTexture2D> Icon;
 
 	//A getter to grab whoever this Action belongs to
 	UFUNCTION(BlueprintCallable, Category = "Action")

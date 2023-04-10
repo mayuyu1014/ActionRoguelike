@@ -40,11 +40,41 @@ bool ASPlayerState::RemoveCredits(int32 Delta)
 	return true;
 }
 
+bool ASPlayerState::UpdatePersonalRecord(float NewTime)
+{
+	//Higher time is better
+	if (NewTime > PersonalRecordTime)
+	{
+		float OldRecord = PersonalRecordTime;
+		PersonalRecordTime = NewTime;
+		OnRecordTimeChanged.Broadcast(this, PersonalRecordTime, OldRecord);
+
+		return true;
+	}
+
+	return false;
+}
+
 void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
 {
 	if (SaveObject)
 	{
-		SaveObject->Credits = Credits;
+		//gather all relevant data for player
+		FPlayerSaveData SaveData;
+		SaveData.Credits = Credits;
+		SaveData.PersonalRecordTime = PersonalRecordTime;
+		//store as FString for simplicity (original steam ID is unit64)
+		SaveData.PlayerID = GetUniqueId().ToString();
+
+		//May not be alive while we save
+		if (APawn* MyPawn = GetPawn())
+		{
+			SaveData.Location = MyPawn->GetActorLocation();
+			SaveData.Rotation = MyPawn->GetActorRotation();
+			SaveData.bResumeAtTransform = true;
+		}
+
+		SaveObject->SavedPlayers.Add(SaveData);
 	}
 }
 
@@ -52,9 +82,19 @@ void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
 {
 	if (SaveObject)
 	{
-		//Credits = SaveObject->Credits;
-		// Makes sure we trigger credits changed event, cuz UI is event based
-		AddCredits(SaveObject->Credits);
+		FPlayerSaveData* FoundData = SaveObject->GetPlayerData(this);
+		if (FoundData)
+		{
+			//Credits = SaveObject->Credits;
+			//Makes sure we trigger credits changed event
+			AddCredits(FoundData->Credits);
+
+			PersonalRecordTime = FoundData->PersonalRecordTime;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find SaveGame data for player id '%i."), GetPlayerId());
+		}
 	}
 }
 
@@ -62,7 +102,6 @@ void ASPlayerState::OnRep_Credits(int32 OldCredits)
 {
 	OnCreditsChanged.Broadcast(this, Credits, Credits - OldCredits);
 }
-
 
 // void ASPlayerState::MulticastCredits_Implementation(float NewCredits, float Delta)
 // {

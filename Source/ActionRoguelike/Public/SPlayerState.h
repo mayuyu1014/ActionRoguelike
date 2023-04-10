@@ -6,10 +6,13 @@
 #include "GameFramework/PlayerState.h"
 #include "SPlayerState.generated.h"
 
+class ASPlayerState; //forward declared to satisfy the delegate macros below
+class USSaveGame;
+
 //event binding, trigger when credits change, so it doesnt run every frame
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCreditsChanged, ASPlayerState*, PlayerState, int32, NewCredits, int32, Delta);
-
-class USSaveGame;
+//Event Handler for personal record time
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnRecordTimeChanged, ASPlayerState*, PlayerState, float, NewTime, float, OldRecord);
 
 /**
  * 
@@ -24,6 +27,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = "OnRep_Credits",Category = "Credits")
 	int32 Credits;
 
+	UPROPERTY(BlueprintReadOnly)
+	float PersonalRecordTime;
+
 	// OnRep_ can use a parameter containing the 'old value' of the variable it is bound to. Very useful in this case to figure out the 'delta'.
 	//and we dont need to send a RPC
 	UFUNCTION()
@@ -34,6 +40,10 @@ protected:
 	//void MulticastCredits(float NewCredits, float Delta);
 
 public:
+
+	//checks current record and only sets if better time was passed in.
+	UFUNCTION(BlueprintCallable)
+	bool UpdatePersonalRecord(float NewTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Credits")
 	int32 GetCredits() const;
@@ -46,6 +56,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnCreditsChanged OnCreditsChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnRecordTimeChanged OnRecordTimeChanged;
 
 	UFUNCTION(BlueprintNativeEvent)
 	void SavePlayerState(USSaveGame* SaveObject);

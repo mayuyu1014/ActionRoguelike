@@ -11,7 +11,6 @@
 class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 class UCurveFloat;
-class USSaveGame;
 class UDataTable;
 class USMonsterData;
 
@@ -58,11 +57,6 @@ class ACTIONROGUELIKE_API ASGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 protected:
-
-	FString SlotName;
-
-	UPROPERTY()
-	USSaveGame* CurrentSaveGame;
 
 	//a data table for monsters instead of a class
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
@@ -141,10 +135,4 @@ public:
 	//cheating code for debug purpose
 	UFUNCTION(Exec)
 	void KillAll();
-
-	//available in BP make it easy to save game through UI or in game object 
-	UFUNCTION(BlueprintCallable, Category="SaveGame")
-	void WriteSaveGame();
-
-	void LoadSaveGame();
 };

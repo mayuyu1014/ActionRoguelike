@@ -10,15 +10,13 @@
 #include "DrawDebugHelpers.h"
 #include "SActionComponent.h"
 #include "SCharacter.h"
-#include "SGameplayInterface.h"
 #include "SMonsterData.h"
 #include "SPlayerState.h"
-#include "SSaveGame.h"
+#include "SSaveGameSubsystem.h"
 #include "ActionRoguelike/ActionRoguelike.h"
 #include "Engine/AssetManager.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 
 //console variables for debug, ECVF_Cheat marks this function to not be included in the final build
 static TAutoConsoleVariable<bool>CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
@@ -33,23 +31,17 @@ ASGameModeBase::ASGameModeBase()
 	RequiredPowerupDistance = 2000;
 
 	PlayerStateClass = ASPlayerState::StaticClass();
-
-	SlotName = "SaveGame_01";
 }
 
 void ASGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
-	//key-value pair
-	FString SelectedSaveSlot = UGameplayStatics::ParseOption(Options, "SaveGame");
-	if (SelectedSaveSlot.Len()>0)
-	{
-		SlotName = SelectedSaveSlot;
-	}
+	USSaveGameSubsystem* SG = GetGameInstance()->GetSubsystem<USSaveGameSubsystem>();
 
-	//load saved data before everything else
-	LoadSaveGame();
+	//Optional slot name (Falls back to slot specified in SaveGameSettings class/INI otherwise)
+	FString SelectedSaveSlot = UGameplayStatics::ParseOption(Options, "SaveGame");
+	SG->LoadSaveGame(SelectedSaveSlot);
 }
 
 void ASGameModeBase::StartPlay()
@@ -77,14 +69,14 @@ void ASGameModeBase::StartPlay()
 void ASGameModeBase::HandleStartingNewPlayer_Implementation_Implementation(APlayerController* NewPlayer)
 {
 	// Calling Before Super:: so we set variables before 'beginplayingstate' is called in PlayerController (which is where we instantiate UI)
-	//update player state for newly joined player
-	ASPlayerState* PS = NewPlayer->GetPlayerState<ASPlayerState>();
-	if (PS)
-	{
-		PS->LoadPlayerState(CurrentSaveGame);
-	}
+	USSaveGameSubsystem* SG = GetGameInstance()->GetSubsystem<USSaveGameSubsystem>();
+	SG->HandleStartingNewPlayer(NewPlayer);
 
 	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	//Now we are ready to override spawn location
+	//Alternatively we could override core spawn location to use store locations immediately (skipping the whole 'find player start' logic)
+	SG->OverrideSpawnTransform(NewPlayer);
 };
 
 void ASGameModeBase::KillAll()
@@ -329,104 +321,5 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 		{
 			PS->AddCredits(CreditsPerKill);
 		}
-	}
-}
-
-void ASGameModeBase::WriteSaveGame()
-{
-	//Iterate all player states, we dont have proper ID to match yet (requires steam or EOS
-	for (int32 i=0; i<GameState->PlayerArray.Num(); i++)
-	{
-		ASPlayerState* PS = Cast<ASPlayerState>(GameState->PlayerArray[i]);
-		if(PS)
-		{
-			PS->SavePlayerState(CurrentSaveGame);
-			break; //break here because single player
-		}
-	}
-
-	//clear the container before adding actor
-	CurrentSaveGame->SavedActors.Empty();
-
-	//iterator all the actors in the world and save them
-	for (FActorIterator It(GetWorld()); It; ++It)
-	{
-		AActor* Actor = *It;
-		//only interested in our gameplay actors
-		if (!Actor->Implements<USGameplayInterface>())
-		{
-			continue;
-		}
-
-		//fill the struct/container with data
-		FActorSaveData ActorData;
-		ActorData.ActorName = Actor->GetName();
-		ActorData.Transform = Actor->GetActorTransform();
-
-		//pass the array to fill with data from Actor
-		FMemoryWriter MemWriter(ActorData.ByteData);
-		//need this for the "SaveGame" variables
-		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
-		//find only variables with UPROPERTY(SaveGame)
-		Ar.ArIsSaveGame = true;
-		//Convert Actor's SaveGame UPROPERTY into binary array
-		Actor->Serialize(Ar);
-
-		CurrentSaveGame->SavedActors.Add(ActorData);
-	}
-
-	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SlotName, 0);
-}
-
-void ASGameModeBase::LoadSaveGame()
-{
-	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
-	{
-		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
-		if (CurrentSaveGame == nullptr)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to Load SaveGame Data."));
-			return;
-		}
-		UE_LOG(LogTemp, Log, TEXT("Loaded SaveGame Data."));
-
-		//do this after loading complete
-		//iterator all the actors in the world and save them
-		for (FActorIterator It(GetWorld()); It; ++It)
-		{
-			AActor* Actor = *It;
-			//only interested in our gameplay actors, implementing interface, so use 'U' prefix
-			if (!Actor->Implements<USGameplayInterface>())
-			{
-				continue;
-			}
-
-			//find matches
-			for (FActorSaveData ActorData : CurrentSaveGame->SavedActors)
-			{
-				if (ActorData.ActorName == Actor->GetName())
-				{
-					Actor->SetActorTransform(ActorData.Transform);
-
-					//reverse the saving process
-					FMemoryReader MemReader(ActorData.ByteData);
-					FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
-					Ar.ArIsSaveGame = true;
-					//conver binary data back to Actor variables
-					Actor->Serialize(Ar);
-
-					//update the state of actor, calling function so us 'I' prefix
-					ISGameplayInterface::Execute_OnActorLoaded(Actor);
-
-					break;
-				}
-			}
-		}
-
-	}
-	else
-	{
-		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::CreateSaveGameObject(USSaveGame::StaticClass()));
-		UE_LOG(LogTemp, Log, TEXT("Created New SaveGame Data."));
 	}
 }
